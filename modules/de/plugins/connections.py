@@ -1,30 +1,29 @@
 from airflow.plugins_manager import AirflowPlugin
 from airflow.models import Connection
-from airflow.hooks.base import BaseHook
 from airflow import settings
 import os
 
 class PostgresConnectionPlugin(AirflowPlugin):
     name = "postgres_connection_plugin"
 
-    def __init__(self):
-        super().__init__()
+    def on_load(self):
         self.create_postgres_connection()
-    
+
     def create_postgres_connection(self):
-        """Create a connection to the PostgreSQL database if it doesn't exist."""
+        """Ensure the `postgres_default` connection is registered."""
         session = settings.Session()
-        
+
         # Get database connection parameters from environment variables
-        db_user = os.environ['ADMIN_DB_USER']
-        db_password = os.environ['ADMIN_DB_PASSWORD']
-        db_host = os.environ['DB_HOSTNAME']
-        db_port = os.environ['DB_PORT']
-        db_name = os.environ['DB_NAME']
-        
+        db_user = os.getenv('ADMIN_DB_USER')
+        db_password = os.getenv('ADMIN_DB_PASSWORD')
+        db_host = os.getenv('DB_HOSTNAME')
+        db_port = os.getenv('DB_PORT')
+        db_name = os.getenv('DB_NAME')
+
         # Check if connection already exists
-        if not BaseHook.get_connection('postgres_default'):
-            # Create new connection
+        existing_conn = session.query(Connection).filter(Connection.conn_id == 'postgres_default').first()
+
+        if not existing_conn:
             new_conn = Connection(
                 conn_id='postgres_default',
                 conn_type='postgres',
@@ -34,9 +33,9 @@ class PostgresConnectionPlugin(AirflowPlugin):
                 schema=db_name,
                 port=db_port
             )
-            
+
             session.add(new_conn)
             session.commit()
             print("PostgreSQL connection 'postgres_default' created.")
-        
-        session.close() 
+
+        session.close()

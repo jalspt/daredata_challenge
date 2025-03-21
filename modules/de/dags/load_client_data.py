@@ -2,6 +2,8 @@ from datetime import datetime, timedelta
 import os
 import pandas as pd
 import boto3
+from botocore import UNSIGNED
+from botocore.client import Config
 from io import BytesIO
 from sqlalchemy import create_engine
 from airflow import DAG
@@ -22,7 +24,7 @@ db_user = os.environ['ADMIN_DB_USER']
 db_password = os.environ['ADMIN_DB_PASSWORD']
 db_host = os.environ['DB_HOSTNAME']
 db_port = os.environ['DB_PORT']
-db_name = 'companydata'
+db_name = os.environ['DB_NAME']
 
 # S3 bucket
 bucket_name = 'daredata-technical-challenge-data'
@@ -30,11 +32,7 @@ bucket_name = 'daredata-technical-challenge-data'
 # Function to load data from S3 to PostgreSQL
 def load_data_from_s3_to_postgres(file_name, table_name, **kwargs):
     # Create S3 client
-    s3_client = boto3.client(
-        's3',
-        aws_access_key_id=os.environ['AWS_ACCESS_KEY_ID'],
-        aws_secret_access_key=os.environ['AWS_SECRET_ACCESS_KEY'],
-    )
+    s3_client = boto3.client('s3', config=Config(signature_version=UNSIGNED))
     
     try:
         # Get file from S3

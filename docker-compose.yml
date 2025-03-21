@@ -18,7 +18,7 @@ services:
       - POSTGRES_DB=companydata
     volumes:
       - ./modules/de/db_admin/setup_users.sql:/docker-entrypoint-initdb.d/setup_users.sql
-
+  
   airflow:
     build:
       context: .
@@ -27,8 +27,11 @@ services:
     ports:
       - 8082:8082
     environment:
-      - ADMIN_DB_USER=admin
-      - ADMIN_DB_PASSWORD=${ADMIN_DB_PASSWORD} # password for the DB admin user
+      - ADMIN_DB_USER=${ADMIN_DB_USER}
+      - ADMIN_DB_PASSWORD=${ADMIN_DB_PASSWORD}
+      - DB_HOSTNAME=${DB_HOSTNAME}
+      - DB_PORT=${DB_PORT}
+      - DB_NAME=${DB_NAME}
       - AIRFLOW__CORE__DAGS_ARE_PAUSED_AT_CREATION=True
       - AIRFLOW__CORE__LOAD_EXAMPLES=False
       - AIRFLOW__DATABASE__LOAD_DEFAULT_CONNECTIONS=False
@@ -37,8 +40,8 @@ services:
       - _AIRFLOW_WWW_USER_CREATE=True
       - _AIRFLOW_WWW_USER_USERNAME=airflow
       - _AIRFLOW_WWW_USER_PASSWORD=airflow
-      - AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID}
-      - AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY}
+      #- AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID}
+      #- AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY}
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
       - ./modules/de/dags:/opt/airflow/dags

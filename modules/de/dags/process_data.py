@@ -21,7 +21,7 @@ db_user = os.environ['ADMIN_DB_USER']
 db_password = os.environ['ADMIN_DB_PASSWORD']
 db_host = os.environ['DB_HOSTNAME']
 db_port = os.environ['DB_PORT']
-db_name = 'companydata'
+db_name = os.environ['DB_NAME']
 
 # Function to create feature store
 def create_feature_store():
