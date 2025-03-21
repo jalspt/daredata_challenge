@@ -1,5 +1,0 @@
-project_id = "your-gcp-project-id"
-region = "europe-west1"
-bucket_name = "daredata-storage"
-dataset_id = "daredata_dataset"
-service_account_name = "daredata" 
