@@ -58,6 +58,16 @@ def load_monthly_sales_data(**kwargs):
         # Create database connection
         engine = create_engine(f'postgresql://{db_user}:{db_password}@{db_host}:{db_port}/{db_name}')
         
+        # Delete existing data for this month to avoid primary key conflicts when rerunning
+        delete_query = f"""
+            DELETE FROM sales 
+            WHERE EXTRACT(YEAR FROM date) = {year}
+            AND EXTRACT(MONTH FROM date) = {month}
+        """
+        with engine.begin() as connection:
+            connection.execute(text(delete_query))
+            print(f"Deleted existing sales data for {year}-{month:02d}")
+        
         # Write DataFrame to PostgreSQL (append to existing table)
         df.to_sql('sales', engine, if_exists='append', index=False)
         

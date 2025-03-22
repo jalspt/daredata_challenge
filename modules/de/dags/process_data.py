@@ -29,40 +29,64 @@ def create_feature_store():
     engine = create_engine(f'postgresql://{db_user}:{db_password}@{db_host}:{db_port}/{db_name}')
     
     try:
-        # SQL query to create the feature store
-        # Joining customer profiles, latest customer activity, and labels
+        # SQL query to merge new data into the feature store
+        # Using PostgreSQL's CTE for merge-like operation
         query = """
-        CREATE TABLE IF NOT EXISTS feature_store AS
-        SELECT 
-            cp.idx,
-            cp.attr_a,
-            cp.attr_b,
-            ca.scd_a,
-            ca.scd_b,
-            l.label
-        FROM 
-            customer_profiles cp
-        JOIN (
-            -- Get only the latest activity for each customer (where valid_to is NULL)
-            SELECT * FROM customer_activity 
-            WHERE valid_to IS NULL
-        ) ca ON cp.idx = ca.idx
-        JOIN labels l ON cp.idx = l.idx;
+        -- First, create a temporary view with the latest data from source tables
+        WITH source_data AS (
+            SELECT 
+                cp.idx,
+                cp.attr_a,
+                cp.attr_b,
+                ca.scd_a,
+                ca.scd_b,
+                l.label
+            FROM 
+                customer_profiles cp
+            JOIN customer_activity ca ON cp.idx = ca.idx AND ca.valid_to IS NULL
+            JOIN labels l ON cp.idx = l.idx
+        ),
         
-        -- Grant permissions to DS and MLE users
-        GRANT SELECT ON feature_store TO ds_user_role;
-        GRANT ALL PRIVILEGES ON feature_store TO mle_user_role;
+        -- Records to update (exist in both source and target)
+        updates AS (
+            UPDATE feature_store fs
+            SET 
+                attr_a = sd.attr_a,
+                attr_b = sd.attr_b,
+                scd_a = sd.scd_a,
+                scd_b = sd.scd_b,
+                label = sd.label
+            FROM source_data sd
+            WHERE fs.idx = sd.idx
+            RETURNING fs.idx
+        ),
+        
+        -- Records to insert (exist in source but not in target)
+        inserts AS (
+            INSERT INTO feature_store (idx, attr_a, attr_b, scd_a, scd_b, label)
+            SELECT 
+                sd.idx, sd.attr_a, sd.attr_b, sd.scd_a, sd.scd_b, sd.label
+            FROM source_data sd
+            LEFT JOIN updates u ON sd.idx = u.idx
+            WHERE u.idx IS NULL
+            RETURNING idx
+        )
+        
+        -- Delete records that exist in target but not in source
+        DELETE FROM feature_store fs
+        WHERE NOT EXISTS (
+            SELECT 1 FROM source_data sd WHERE sd.idx = fs.idx
+        );
         """
         
         # Execute the SQL query
-        with engine.connect() as connection:
-            connection.execute(text("DROP TABLE IF EXISTS feature_store"))
+        with engine.begin() as connection:
             connection.execute(text(query))
-            connection.commit()
+            # Transaction is automatically committed when the block exits
         
-        print("Successfully created feature_store table")
+        print("Successfully merged data into feature_store")
     except Exception as e:
-        print(f"Error creating feature_store: {str(e)}")
+        print(f"Error merging data into feature_store: {str(e)}")
         raise
 
 # Define sensors to check if required tables exist
@@ -79,7 +103,7 @@ dag = DAG(
     'process_data',
     default_args=default_args,
     description='Create feature store from customer data',
-    schedule_interval=None,  # Triggered manually after client data and sales data are loaded
+    schedule_interval=None,  # No schedule - triggered by load_client_data
     start_date=datetime(2023, 1, 1),
     catchup=False,
 )

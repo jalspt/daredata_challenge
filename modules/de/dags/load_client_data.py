@@ -8,6 +8,7 @@ from io import BytesIO
 from sqlalchemy import create_engine
 from airflow import DAG
 from airflow.operators.python import PythonOperator
+from airflow.operators.trigger_dagrun import TriggerDagRunOperator
 
 # Default arguments for DAG
 default_args = {
@@ -59,7 +60,7 @@ dag = DAG(
     default_args=default_args,
     description='Load customer data from S3 to PostgreSQL',
     schedule_interval=None,  # One-off workflow, triggered manually
-    start_date=datetime(2023, 1, 1),
+    start_date=datetime(2025, 1, 1),
     catchup=False,
 )
 
@@ -104,5 +105,12 @@ stores_task = PythonOperator(
     dag=dag,
 )
 
-# Set task dependencies (run in parallel since they're independent)
-# No specific dependencies required, tasks can run in parallel 
+# Task to trigger the process_data DAG after all data is loaded
+trigger_process_data = TriggerDagRunOperator(
+    task_id='trigger_process_data',
+    trigger_dag_id='process_data',
+    dag=dag,
+)
+
+# Set task dependencies
+[customer_profiles_task, customer_activity_task, labels_task, stores_task] >> trigger_process_data 

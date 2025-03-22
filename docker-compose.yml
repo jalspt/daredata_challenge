@@ -18,7 +18,8 @@ services:
       - POSTGRES_DB=companydata
     volumes:
       - ./modules/de/db_admin/setup_users.sql:/docker-entrypoint-initdb.d/setup_users.sql
-  
+      - postgres_data:/var/lib/postgresql/data
+
   airflow:
     build:
       context: .
@@ -62,3 +63,6 @@ services:
       - operational-db
     volumes:
       - ./modules/ds/models/:/models
+
+volumes:
+  postgres_data:
