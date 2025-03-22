@@ -58,19 +58,7 @@ def load_monthly_sales_data(**kwargs):
         # Create database connection
         engine = create_engine(f'postgresql://{db_user}:{db_password}@{db_host}:{db_port}/{db_name}')
         
-        # Create sales table if it doesn't exist
-        with engine.connect() as connection:
-            connection.execute(text("""
-                CREATE TABLE IF NOT EXISTS sales (
-                    id SERIAL PRIMARY KEY,
-                    store_idx INT,
-                    date DATE,
-                    value NUMERIC(10, 2)
-                )
-            """))
-            connection.commit()
-        
-        # Write DataFrame to PostgreSQL
+        # Write DataFrame to PostgreSQL (append to existing table)
         df.to_sql('sales', engine, if_exists='append', index=False)
         
         print(f"Successfully loaded sales data for {date_str}")
@@ -91,20 +79,7 @@ def aggregate_monthly_sales(**kwargs):
     # Create database connection
     engine = create_engine(f'postgresql://{db_user}:{db_password}@{db_host}:{db_port}/{db_name}')
     
-    try:
-        # Create monthly_sales table if it doesn't exist
-        with engine.connect() as connection:
-            connection.execute(text("""
-                CREATE TABLE IF NOT EXISTS monthly_sales (
-                    id SERIAL PRIMARY KEY,
-                    store_idx INT,
-                    location VARCHAR(255),
-                    sale_month DATE,
-                    value NUMERIC(10, 2)
-                )
-            """))
-            connection.commit()
-        
+    try: 
         # Query to get aggregated monthly sales data with location
         query = f"""
             SELECT s.store_idx, st.location, 
@@ -122,15 +97,14 @@ def aggregate_monthly_sales(**kwargs):
         
         # Insert into monthly_sales table
         if not monthly_df.empty:
-            # First check if the data for this month already exists
+            # First delete existing data for this month
             check_query = f"""
                 DELETE FROM monthly_sales 
                 WHERE EXTRACT(YEAR FROM sale_month) = {year}
                   AND EXTRACT(MONTH FROM sale_month) = {month}
             """
-            with engine.connect() as connection:
+            with engine.begin() as connection:
                 connection.execute(text(check_query))
-                connection.commit()
             
             # Insert the new data
             monthly_df.to_sql('monthly_sales', engine, if_exists='append', index=False)
