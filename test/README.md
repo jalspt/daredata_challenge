@@ -1,1 +1,0 @@
-# daredata_challenge
