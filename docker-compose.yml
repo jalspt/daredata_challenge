@@ -1,3 +1,5 @@
+version: '3.4'
+
 services:
   # DATA ENGINEERING MODULE
   ## Reimplement this section if you're taking the data engineering test!
@@ -57,7 +59,6 @@ services:
       - DS_DB_PASSWORD=${DS_DB_PASSWORD} # password for the DB admin user
       - DB_HOSTNAME=${DB_HOSTNAME}
       - DB_PORT=${DB_PORT}
-      - PYTHONUNBUFFERED=1
     depends_on:
       - operational-db
     volumes:
