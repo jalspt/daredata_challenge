@@ -1,6 +1,3 @@
--- Setup users, roles and permissions for the PostgreSQL database
--- This script runs when the database container initializes
-
 -- Create roles
 CREATE ROLE ds_user_role;
 CREATE ROLE mle_user_role;

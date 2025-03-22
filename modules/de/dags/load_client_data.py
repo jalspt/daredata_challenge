@@ -60,7 +60,7 @@ dag = DAG(
     default_args=default_args,
     description='Load customer data from S3 to PostgreSQL',
     schedule_interval=None,  # One-off workflow, triggered manually
-    start_date=datetime(2025, 1, 1),
+    start_date=datetime(2024, 11, 1),
     catchup=False,
 )
 
