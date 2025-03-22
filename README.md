@@ -7,10 +7,10 @@ In this technical assessment, you will simulate being in a team of 3 people: a d
 Your company has some information about its clients' profiles and activity, and wants to create a machine learning model that classifies them into two different groups, with labels `0` and `1`. This is a supervised classification problem.
 This will require a system with four distinct modules, all of which can be found in the `modules` directory:
 
-* `de`: the data engineering module, which sets up the ETL workflow orchestrator, and creates a few ETLs to fetch and process the data.
-* `ds`: the data science module, where the data above is explored, and a model is trained to classify the clients.
-* `mle`: the machine learning engineering module, whose responsibility is to supply the data scientist with the tools to easily productize their model.
-* `deployment`: this module handles the deployment of the final model to a cloud-based service, including provisioning the required infrastructure.
+- `de`: the data engineering module, which sets up the ETL workflow orchestrator, and creates a few ETLs to fetch and process the data.
+- `ds`: the data science module, where the data above is explored, and a model is trained to classify the clients.
+- `mle`: the machine learning engineering module, whose responsibility is to supply the data scientist with the tools to easily productize their model.
+- `deployment`: this module handles the deployment of the final model to a cloud-based service, including provisioning the required infrastructure.
 
 We recommend you read this entire document, as well as each module's documentation before starting (for your module and the deployment module: `IMPLEMENTATION.md`; for other modules: `README.md`).
 
@@ -35,10 +35,10 @@ It's very important that you have the ability to deploy your solutions using mod
 
 ## Running the Final System
 
-* Set the required environment variables for the `docker-compose.yml` file.
-* Run `docker-compose up` to run the entire system.
-* If you're not a `DE`, in order to have the data available, you should navigate to `localhost:8082` and activate the Airflow DAGs in the following order: `load_client_data`, `load_sales_data`, and when both of them have successfully run, `process_data`.
-* The `DS` component should be waiting until the `feature_store` table is available, and then trigger the model training.
+- Set the required environment variables for the `docker-compose.yml` file.
+- Run `docker-compose up` to run the entire system.
+- If you're not a `DE`, in order to have the data available, you should navigate to `localhost:8082` and activate the Airflow DAGs in the following order: `load_client_data`, `load_sales_data`, and when both of them have successfully run, `process_data`.
+- The `DS` component should be waiting until the `feature_store` table is available, and then trigger the model training.
 
 The output should be a newly trained model in the `ds/models` folder (along with any other required artifacts such as the model's one-hot encoder).
 
@@ -46,14 +46,14 @@ The output should be a newly trained model in the `ds/models` folder (along with
 
 After you finish your challenge, you should do the following in order to share the solution with us:
 
-* create an empty Git repository, making a commit to the `main` branch with the base code that we have provided you
-* share the repo with ruimgf, nunobbras and ivopbernardo
-* push your implementation of the code to a separate branch.
-* create a pull request from your working branch to the `main` branch, and share this pull request with us.
-* include a `SOLUTION.md` file at the root of the repository. This file should contain:
-    * a description of the final solution, with particular emphasis on the deployment module. Feel free to use diagrams, charts, etc. to illustrate your implementation
-    * a detailed timeline of the implementation: time taken for each task, implementation order, etc.
-    * documentation about design decisions taken (and motives behind them), difficulties faced, and any other thoughts you think are relevant.
+- create an empty Git repository, making a commit to the `main` branch with the base code that we have provided you
+- share the repo with ruimgf, nunobbras and ivopbernardo
+- push your implementation of the code to a separate branch.
+- create a pull request from your working branch to the `main` branch, and share this pull request with us.
+- include a `SOLUTION.md` file at the root of the repository. This file should contain:
+  - a description of the final solution, with particular emphasis on the deployment module. Feel free to use diagrams, charts, etc. to illustrate your implementation
+  - a detailed timeline of the implementation: time taken for each task, implementation order, etc.
+  - documentation about design decisions taken (and motives behind them), difficulties faced, and any other thoughts you think are relevant.
 
 ## Evaluation Checklist
 
@@ -70,7 +70,7 @@ Here is a checklist to help you keep track of the deliverables:
 
 Other than that, it's also important to have:
 
-* clean and "dry" code.
-* a well structured repository.
+- clean and "dry" code.
+- a well structured repository.
 
 Good luck and we hope you enjoy this challenge!
