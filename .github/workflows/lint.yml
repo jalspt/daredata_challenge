@@ -24,3 +24,12 @@
              
          - name: Lint with Black
            run: black --check .
+
+         - name: Format with Black
+           run: black .
+         
+         - name: Commit changes
+           uses: stefanzweifel/git-auto-commit-action@v4
+           with:
+             commit_message: "Apply Black formatting"
+             branch: ${{ github.head_ref }}
