@@ -136,24 +136,12 @@ Access the Airflow UI to check and trigger workflows:
 
 #### 3. Run ETL Workflows
 
-Execute the workflows in the proper order:
-
-```bash
-# Trigger the client data load (one-time setup)
-docker exec -it airflow airflow dags trigger load_client_data
-
-# Wait for completion, then trigger the sales data load
-docker exec -it airflow airflow dags trigger load_sales_data
-
-# Finally, trigger the data processing pipeline
-docker exec -it airflow airflow dags trigger process_data
-```
-
-Alternatively, you can trigger these DAGs from the Airflow UI:
+Execute the workflows in the proper order in the Airflow UI:
 
 1. Navigate to the DAGs list
-2. Click the "Play" button next to each DAG
-3. Monitor execution in the "Graph View"
+2. Turn the 3 DAGs on
+3. Run `load_client_data` manually
+4. Verify that the 3 DAGs run successfully
 
 #### 4. Verify Data Processing Results
 
@@ -165,8 +153,6 @@ docker exec -it postgres psql -U admin -d companydata
 
 # Check the feature store table
 SELECT COUNT(*) FROM public.feature_store;
-
-# Verify that client profiles, activities, and sales data are joined correctly
 SELECT * FROM public.feature_store LIMIT 5;
 
 # Exit PostgreSQL
@@ -190,72 +176,25 @@ Verify that user permissions are correctly set:
 # Connect as DS user (read-only)
 docker exec -it postgres psql -U ds_user -d companydata
 
-# Attempt to read data (should succeed)
-SELECT * FROM public.feature_store LIMIT 5;
-
-# Attempt to modify data (should fail)
-INSERT INTO public.clients VALUES (999, 'Test Client', 'test@example.com');
-
 # Exit and connect as MLE user
 \q
 docker exec -it postgres psql -U mle_user -d companydata
-
-# MLE user should have read and write access
-SELECT * FROM public.feature_store LIMIT 5;
-INSERT INTO public.test_table VALUES (1, 'Test Value');
 ```
 
 ## Implementation Timeline
 
-### Phase 1: Setup & Environment Configuration
+- Friday was used to do an initial review of requirements
 
-- [Date] Initial review of requirements
-- [Date] Set up local development environment
-- [Date] Configured Docker and environment variables
+- Saturday started with setting up local development environment, configuring Docker and environment variables, database schema and user setup. This took around 1 hour
+- Airflow configuration, ETL workflows implementation and testing and validation. This took around 2 hours
+- Model training was giving me some problems. First with pandas, which I was able to solve, but then new problems showed up. I spent the rest of the day trying to solve this, but wasn't successfull
+![alt text](image-7.png)
 
-### Phase 2: Data Engineering Module
 
-- [Date] Database schema and user setup
-- [Date] Airflow configuration
-- [Date] ETL workflows implementation
-- [Date] Testing and validation
+- Since I wasn't able to solve the issue the day before, Sunday I gave it another try. Wasn't successfull and decided to continue the assessment even without model training working. I tried to solve this issue for like 2 hours more
+- Implemented DS module task: Added get_sales_data() function and MLE module task: Added logging to MLEModel class. This took around 1 hour
+- Implemented CI/CD with GitHub Actions for code formatting with black. This took around 30 minutes
 
-### Phase 3: Module Tasks
 
-- [Date] Implemented DS module task: Added get_sales_data() function
-- [Date] Implemented MLE module task: Added logging to MLEModel class
-- [Date] Implemented CI/CD with GitHub Actions for code formatting
+- Both Saturday and Sunday I was updating SOLUTION.md as I was developing the project. Sunday at the end of the day I finished it and made it more structured
 
-### Phase 4: Deployment Module
-
-- [To be completed]
-
-### Phase 5: Documentation & Submission
-
-- [Date] Created SOLUTION.md structure
-- [To be completed]
-
-## Design Decisions and Challenges
-
-### Design Decisions
-
-_[Document key design decisions here, such as:]_
-
-- Why certain tools or approaches were chosen
-- Architecture considerations
-- Security measures
-- Performance optimizations
-- **CI/CD Approach**: Chose GitHub Actions for CI/CD due to its tight integration with GitHub repositories, ease of setup, and ability to automate code quality tasks with minimal configuration.
-
-### Challenges Faced
-
-_[Document challenges you encountered and how you resolved them:]_
-
-- Any technical obstacles
-- Integration issues
-- Performance considerations
-- **GitHub Actions Permissions**: Initially encountered permission issues with GitHub Actions when trying to commit formatted code back to the repository. Resolved by configuring proper workflow permissions in the repository settings.
-
-## Screenshots and Evidence
-
-_[This section will include screenshots of the deployed system, API in action, etc.]_
