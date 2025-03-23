@@ -12,52 +12,55 @@ from airflow.models import Variable
 
 # Default arguments for DAG
 default_args = {
-    'owner': 'de_team',
-    'depends_on_past': False,
-    'email_on_failure': False,
-    'email_on_retry': False,
-    'retries': 1,
-    'retry_delay': timedelta(minutes=5),
+    "owner": "de_team",
+    "depends_on_past": False,
+    "email_on_failure": False,
+    "email_on_retry": False,
+    "retries": 1,
+    "retry_delay": timedelta(minutes=5),
 }
 
 # Database connection parameters
-db_user = os.environ['ADMIN_DB_USER']
-db_password = os.environ['ADMIN_DB_PASSWORD']
-db_host = os.environ['DB_HOSTNAME']
-db_port = os.environ['DB_PORT']
-db_name = os.environ['DB_NAME']
+db_user = os.environ["ADMIN_DB_USER"]
+db_password = os.environ["ADMIN_DB_PASSWORD"]
+db_host = os.environ["DB_HOSTNAME"]
+db_port = os.environ["DB_PORT"]
+db_name = os.environ["DB_NAME"]
 
 # S3 bucket
-bucket_name = 'daredata-technical-challenge-data'
+bucket_name = "daredata-technical-challenge-data"
+
 
 # Function to load monthly sales data from S3 to PostgreSQL
 def load_monthly_sales_data(**kwargs):
     # Get the execution date
-    execution_date = kwargs['execution_date']
-    
+    execution_date = kwargs["execution_date"]
+
     # Calculate previous month (since this DAG runs at the start of each month for previous month data)
     prev_month = execution_date.replace(day=1) - timedelta(days=1)
     year = prev_month.year
     month = prev_month.month
-    
+
     # Format the date for S3 path
     date_str = f"{year}-{month:02d}-01"
     s3_key = f"sales/{date_str}/sales.csv"
-    
+
     # Create S3 client
-    s3_client = boto3.client('s3', config=Config(signature_version=UNSIGNED))
-    
+    s3_client = boto3.client("s3", config=Config(signature_version=UNSIGNED))
+
     try:
         # Get file from S3
         response = s3_client.get_object(Bucket=bucket_name, Key=s3_key)
-        file_content = response['Body'].read()
-        
+        file_content = response["Body"].read()
+
         # Load data into pandas DataFrame
         df = pd.read_csv(BytesIO(file_content))
-        
+
         # Create database connection
-        engine = create_engine(f'postgresql://{db_user}:{db_password}@{db_host}:{db_port}/{db_name}')
-        
+        engine = create_engine(
+            f"postgresql://{db_user}:{db_password}@{db_host}:{db_port}/{db_name}"
+        )
+
         # Delete existing data for this month to avoid primary key conflicts when rerunning
         delete_query = f"""
             DELETE FROM sales 
@@ -67,29 +70,32 @@ def load_monthly_sales_data(**kwargs):
         with engine.begin() as connection:
             connection.execute(text(delete_query))
             print(f"Deleted existing sales data for {year}-{month:02d}")
-        
+
         # Write DataFrame to PostgreSQL (append to existing table)
-        df.to_sql('sales', engine, if_exists='append', index=False)
-        
+        df.to_sql("sales", engine, if_exists="append", index=False)
+
         print(f"Successfully loaded sales data for {date_str}")
     except Exception as e:
         print(f"Error loading sales data for {date_str}: {str(e)}")
         raise
 
+
 # Function to aggregate monthly sales
 def aggregate_monthly_sales(**kwargs):
     # Get the execution date
-    execution_date = kwargs['execution_date']
-    
+    execution_date = kwargs["execution_date"]
+
     # Calculate previous month
     prev_month = execution_date.replace(day=1) - timedelta(days=1)
     year = prev_month.year
     month = prev_month.month
-    
+
     # Create database connection
-    engine = create_engine(f'postgresql://{db_user}:{db_password}@{db_host}:{db_port}/{db_name}')
-    
-    try: 
+    engine = create_engine(
+        f"postgresql://{db_user}:{db_password}@{db_host}:{db_port}/{db_name}"
+    )
+
+    try:
         # Query to get aggregated monthly sales data with location
         query = f"""
             SELECT s.store_idx, st.location, 
@@ -101,10 +107,10 @@ def aggregate_monthly_sales(**kwargs):
               AND EXTRACT(MONTH FROM s.date) = {month}
             GROUP BY s.store_idx, st.location, DATE_TRUNC('month', s.date)
         """
-        
+
         # Get the monthly aggregated data
         monthly_df = pd.read_sql(query, engine)
-        
+
         # Insert into monthly_sales table
         if not monthly_df.empty:
             # First delete existing data for this month
@@ -115,39 +121,40 @@ def aggregate_monthly_sales(**kwargs):
             """
             with engine.begin() as connection:
                 connection.execute(text(check_query))
-            
+
             # Insert the new data
-            monthly_df.to_sql('monthly_sales', engine, if_exists='append', index=False)
-            
+            monthly_df.to_sql("monthly_sales", engine, if_exists="append", index=False)
+
         print(f"Successfully aggregated sales data for {year}-{month:02d}")
     except Exception as e:
         print(f"Error aggregating sales data for {year}-{month:02d}: {str(e)}")
         raise
 
+
 # Define DAG
 dag = DAG(
-    'load_sales_data',
+    "load_sales_data",
     default_args=default_args,
-    description='Load and aggregate monthly sales data',
-    schedule_interval='@monthly',  # Run once a month
+    description="Load and aggregate monthly sales data",
+    schedule_interval="@monthly",  # Run once a month
     start_date=datetime(2023, 1, 1),
     catchup=True,
 )
 
 # Define tasks
 load_task = PythonOperator(
-    task_id='load_monthly_sales',
+    task_id="load_monthly_sales",
     python_callable=load_monthly_sales_data,
     provide_context=True,
     dag=dag,
 )
 
 aggregate_task = PythonOperator(
-    task_id='aggregate_monthly_sales',
+    task_id="aggregate_monthly_sales",
     python_callable=aggregate_monthly_sales,
     provide_context=True,
     dag=dag,
 )
 
 # Set task dependencies
-load_task >> aggregate_task 
+load_task >> aggregate_task

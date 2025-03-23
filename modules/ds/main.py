@@ -14,9 +14,12 @@ def main():
             dataset = get_dataset()
             waiting = False
         except ProgrammingError:
-            print("Does the feature_store table exist? Make sure you've run all the data ETLs", flush=True)
+            print(
+                "Does the feature_store table exist? Make sure you've run all the data ETLs",
+                flush=True,
+            )
             time.sleep(5)
-    
+
     # Instantiating and training the model
     print("Training the model...")
     model = SimpleModel()
@@ -27,4 +30,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-    
