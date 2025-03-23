@@ -194,6 +194,7 @@ docker exec -it postgres psql -U mle_user -d companydata
 - Since I wasn't able to solve the issue the day before, Sunday I gave it another try. Wasn't successfull and decided to continue the assessment even without model training working. I tried to solve this issue for like 2 hours more
 - Implemented DS module task: Added get_sales_data() function and MLE module task: Added logging to MLEModel class. This took around 1 hour
 - Implemented CI/CD with GitHub Actions for code formatting with black. This took around 30 minutes
+- Developed Flask API for model serving at /predict endpoint. Since I wasn't able to solve the problem from the day before, I wasn't able to test this. This took around 2 hour
 
 
 - Both Saturday and Sunday I was updating SOLUTION.md as I was developing the project. Sunday at the end of the day I finished it and made it more structured
