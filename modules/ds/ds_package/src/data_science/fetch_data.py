@@ -21,3 +21,13 @@ def get_dataset():
     )
 
     return dataset
+
+def get_sales_data():
+    """Fetches the sales data from the database.
+    """
+    sales_data = pd.read_sql(
+        "SELECT * FROM sales",
+        get_conn_string()
+    )
+    
+    return sales_data
