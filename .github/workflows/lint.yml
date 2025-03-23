@@ -11,6 +11,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
+        with:
+          ref: ${{ github.head_ref }}
 
       - name: Set up Python
         uses: actions/setup-python@v4
@@ -22,15 +24,10 @@ jobs:
           python -m pip install --upgrade pip
           pip install black
 
-      - name: Lint with Black
-        run: black --check --exclude modules/deployment/api/app.py .
-
-      - name: Fix formatting with Black
-        if: failure()
+      - name: Format with Black
         run: black --exclude modules/deployment/api/app.py .
 
       - name: Commit changes
         uses: stefanzweifel/git-auto-commit-action@v4
         with:
           commit_message: "Apply Black formatting"
-          branch: ${{ github.head_ref }}
