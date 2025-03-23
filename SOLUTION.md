@@ -22,7 +22,7 @@ This module implements a data engineering solution for processing and storing cl
 - Admin user with full access
 - DS user with read-only access
 - MLE user with full access to the public schema
-- Created initialization scripts in the `db_admin` directory
+- Created initialization script in the `db_admin` directory for initial table creation
 
 #### Airflow for Workflow Orchestration
 
@@ -36,16 +36,16 @@ This module implements a data engineering solution for processing and storing cl
 
 Implemented three main Airflow DAGs:
 
-1. `load_client_data` - One-off workflow that loads customer profiles, activity data, and labels from S3
+1. `load_client_data` - One-off workflow that loads customer profiles, activity data, and labels from S3. Needs to be run manually
 2. `load_sales_data` - Monthly workflow that loads and aggregates sales data
-3. `process_data` - Creates the feature store by joining customer data tables
+3. `process_data` - Creates the feature store by joining customer data tables. Run automatically afer `load_client_data` finishes
 
 #### Directory Structure
 
 - `dags/` - Contains Airflow DAGs for data processing
 - `docker/` - Dockerfile and requirements for Airflow
 - `plugins/` - Custom Airflow plugins and helpers
-- `db_admin/` - Database initialization scripts
+- `db_admin/` - Database initialization script
 
 ## Data Storage
 
@@ -55,16 +55,15 @@ PostgreSQL data is stored locally in the module's directory structure:
 
 ### Data Science Module Task
 
-I implemented the "Add a new function to the `data_science` package to fetch the data from the sales table" task:
+Implemented the "Add a new function to the `data_science` package to fetch the data from the sales table" task:
 
 - Added a `get_sales_data()` function to the `fetch_data.py` file
 - The function connects to the database and retrieves all sales data
 - Used the existing connection string pattern for consistency
-- Verified the function works by testing it from the command line
 
 ### Machine Learning Engineering Module Task
 
-I implemented the "Add logging to the `MLEModel` class" task:
+Implemented the "Add logging to the `MLEModel` class" task:
 
 - Added Python's logging module to the MLEModel class
 - Configured logging with appropriate format and level
@@ -76,42 +75,22 @@ I implemented the "Add logging to the `MLEModel` class" task:
 
 ### CI/CD Implementation
 
-For the deployment module, I implemented a CI/CD pipeline using GitHub Actions to ensure code quality:
+Implemented a CI/CD pipeline using GitHub Actions to ensure code quality:
 
-- Created a GitHub Actions workflow that runs automatically on pull request to main branch
+- Created a GitHub Actions workflow that runs automatically on pull requests to main branch
 - Implemented automatic code formatting with Black to ensure consistent code style
 - Set up automatic commit of formatted code back to the repository
 - Ensured proper repository permissions for GitHub Actions
 
-This CI/CD implementation helps maintain code quality by enforcing a consistent code style across the project, which will be critical when implementing the full API and deployment infrastructure.
 
 ### API Implementation
 
-I've implemented a simple Flask-based API that serves model predictions through HTTP:
+Implemented a simple Flask-based API that serves model predictions through HTTP:
 
 - Created a RESTful API endpoint at `/predict` that accepts POST requests
 - Implemented proper model loading from the DS module's models directory
 - Added input validation and error handling to ensure robust operation
-- Configured the server to be internet-accessible (running on 0.0.0.0)
 - Structured the API to return prediction labels in JSON format
-
-The API provides everything needed for end-users to make HTTP requests and receive label predictions for new clients. Key features include:
-
-- **Dynamic model loading**: API automatically locates and loads the trained model
-- **Input validation**: Validates incoming requests to ensure required fields are present
-- **Error handling**: Gracefully handles exceptions and returns appropriate HTTP status codes
-- **JSON responses**: Returns predictions in a standardized JSON format
-- **Production-ready configuration**: Configured for deployment with proper host binding
-
-The implementation follows best practices for Flask API development and ensures the model is properly integrated with the web service.
-
-### Architecture Design
-
-_[Describe the cloud architecture here]_
-
-### Testing and Monitoring
-
-_[Describe testing and monitoring setup here]_
 
 ## Running the Project
 
@@ -136,15 +115,7 @@ docker exec -it postgres psql -U admin -d companydata
 
 # List all tables in the public schema
 \dt public.*
-
-# Verify user roles and permissions
-\du
-
-# Check if the database is properly initialized
-SELECT COUNT(*) FROM public.clients;
-SELECT COUNT(*) FROM public.activity;
-SELECT COUNT(*) FROM public.labels;
-SELECT COUNT(*) FROM public.sales;
+![alt text](image.png)
 
 # Exit PostgreSQL
 \q
@@ -160,6 +131,8 @@ Access the Airflow UI to check and trigger workflows:
   - `load_client_data`
   - `load_sales_data`
   - `process_data`
+
+![alt text](image-6.png)
 
 #### 3. Run ETL Workflows
 
@@ -199,6 +172,15 @@ SELECT * FROM public.feature_store LIMIT 5;
 # Exit PostgreSQL
 \q
 ```
+![alt text](image-1.png)
+
+![alt text](image-2.png)
+
+![alt text](image-3.png)
+
+![alt text](image-4.png)
+
+![alt text](image-5.png)
 
 #### 5. Test Data Access with Different Users
 
